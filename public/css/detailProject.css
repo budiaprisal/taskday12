@@ -1,0 +1,107 @@
+.projectDetail {
+    margin-top: 100px;
+    padding: 20px 0;
+    background-color: rgb(222, 227, 236);
+    height: 1480px;
+}
+
+.projectBox {
+    max-width: 1080px;
+    min-width: 940px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.projectMetas {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+}
+
+.projectMetas .heroImg {
+    width: 60%;
+    height: 430px;
+    overflow: hidden;
+}
+
+.projectMetas .heroImg img {
+    width: 100%;
+}
+
+.projectMetas .projectInfo {
+    width: 34%;
+}
+
+.projectInfo .duration {
+    height: 180px;
+}
+
+.projectInfo h3 {
+    height: 50px;
+    display: flex;
+    align-items: center;
+    font-size: 1.4rem;
+}
+
+.projectInfo p {
+    display: flex;
+    align-items: center;
+    font-size: 1.3rem;
+    font-family: 'made_tommy_softregular';
+}
+
+.duration .startEndDate {
+    height: 65px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.duration img {
+    height: 80%;
+}
+
+.duration p {
+    width: 82%;
+}
+
+.duration .durationInfo {
+    height: 65px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.techno .techGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.techGrid div {
+    height: 65px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.techGrid img {
+    height: 80%;
+}
+
+.techGrid p {
+    width: 64%;
+}
+
+
+
+
+.projectContents p {
+    text-align: justify;
+    margin-bottom: 14px;
+    font-family: 'made_tommy_softregular';
+    font-size: 1.2rem;
+    line-height: 1.5rem;
+}
+

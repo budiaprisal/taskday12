@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Halaman Project</title>
+    <link rel="icon" type="image/x-icon" href="../public/favicon/favicon.ico">
+    <link rel="stylesheet" href="/public/css/style1.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+      integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous" />
+  </head>
+  <body>
+    <!--navbar-->
+    <nav class="navbar navbar-expand-lg bg-light">
+      <div class="container">
+        <a class="navbar-brand" href="#">
+          <img src="/public/img/logo.png" alt="logo" width="50px" />
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="/">Home</a>
+            </li>
+            <li>
+              <a class="nav-link active" aria-current="page"  href="/project">My Project</a>
+            </li>
+              
+          </ul>
+
+          
+            {{if .DataSession.IsLogin}}
+            
+              <a href="#" class="text-decoration-none text-dark" >Hallo , {{.DataSession.UserName}}</a>
+              <a href="/logout" class="btn  text-black px-2">Logout</a>
+            
+            {{else}}
+            <div>
+            <a href="/form-register" class="btn  text-black px-2">Register</a>
+            <a href="/form-login" class="btn  text-black  px-2">Login</a>
+          
+          {{end}}
+          <a href="/contact">
+            <button class="btn btn-dark text-white" type="submit">Contact Me</button>
+          </a>
+        </div>
+      </div>
+    </nav>
+
+
+
+
+
+
+    
+   
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <strong>{{.DataSession.FlashData}}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+   
+    <!--cardProject-->
+    <div class="container-fluid">
+      <h3 class="d-flex justify-content-center mt-3">MY PROJECT</h3>
+      {{if .DataSession.IsLogin}}
+      <div style="margin-top: 50px; text-align:end; margin-right: 120px;">
+        <a href="/form-project" style="background-color: black; border-radius: 10px; padding: 10px 20px; color: white; text-decoration: none">Add Blog</a>
+      </div>
+    {{end}}
+      <div class="d-flex flex-wrap justify-content-center">
+        {{range $index, $data := .Projects}}
+          <div class="card  m-3 shadow-lg rounded-4 {{$index}}" style="width: 20rem ">
+            <a href="/project/{{$data.Id}}" >
+              <img src="/public/img/orang.jpg" class="card-img-top rounded-4 p-2" alt="..." />
+            </a>
+            <div class="card-body">
+              <h5 class="card-title">{{$data.ProjectName}}</h5>
+              <br />
+              <p class="text-secondary fs-6">Duration : {{ $data.Duration }}</p>
+              <p class="card-text">{{$data.Description}}</p>
+              <div class="mt-2 mb-2" class="techCheck">
+                {{range $index, $item := $data.Techno}} {{if eq $item "Node JS"}}
+                <img src="../public/img/node.png "height="40px"  />
+                {{else if eq $item "React JS"}}
+                <img src="../public/img/react.png" height="40px"  />
+                {{else if eq $item "Vue JS"}}
+                <img src="../public/img/vue.png" height="40px" />
+                {{else if eq $item "TypeScript"}}
+                <img src="../public/img/typescript.png" height="40px" />
+                {{end}} {{end}}
+              </div>
+              <div class="d-flex btn-group">
+                <a href="/form-edit-project/{{$data.Id}}" class="btn btn-dark m-2 rounded">Edit</a>
+                <a href="/delete-project/{{$data.Id}}" class="btn btn-dark m-2 rounded-start">Delete</a>
+
+                
+              </div>
+            </div>
+          </div>
+        </a>
+        {{ end }}
+      </div>
+    </div>
+    <script src="
+    
+    https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js
+    
+    ">
+
+
+    </script>
+    
+  </body>
+</html>
