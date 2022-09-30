@@ -79,13 +79,13 @@
         {{range $index, $data := .Projects}}
           <div class="card  m-3 shadow-lg rounded-4 {{$index}}" style="width: 20rem ">
             <a href="/project/{{$data.Id}}" >
-              <img src="/public/img/orang.jpg" class="card-img-top rounded-4 p-2" alt="..." />
+              <img src="/uploads/{{$data.Image}}" class="card-img-top rounded-4 p-2" alt="..." />
             </a>
             <div class="card-body">
               <h5 class="card-title">{{$data.ProjectName}}</h5>
               <br />
-              <p class="text-secondary fs-6">Duration : {{ $data.Duration }}</p>
-              <p class="card-text">{{$data.Description}}</p>
+              <p class="text-secondary fs-6">Duration : {{ $data.Duration }} </p>
+              <p class="card-text fw-bold">{{$data.Description}}  | {{$data.Author}} </p>
               <div class="mt-2 mb-2" class="techCheck">
                 {{range $index, $item := $data.Techno}} {{if eq $item "Node JS"}}
                 <img src="../public/img/node.png "height="40px"  />

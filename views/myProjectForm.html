@@ -36,7 +36,7 @@
     <div class="container-fluid d-flex justify-content-center align-items-center bg-light">
       <div class="container-form">
         <h2 class="mb-3 text-center">ADD MY PROJECT</h2>
-        <form action="/add-project" method="POST">
+        <form action="/add-project" method="POST" enctype="multipart/form-data">
           <div class="mb-3">
             <label for="inputName" class="form-label mb-1 fw-bold">Project Name</label>
             <input type="text" id="inputName" name="projectName" class="form-control shadow" />
@@ -95,7 +95,7 @@
           <br />
           <div class="mb-4">
             <label for="inputImage" class="form-label mb-1 fw-bold"> Upload Image</label>
-            <input type="file" id="inputImage" class="form-control shadow" />
+            <input type="file" id="inputImage" name="inputImage" class="form-control shadow" />
           </div>
           <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <button class="btn btn-dark">Submit</button>

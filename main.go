@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"personal-web/connection"
+	"personal-web/middleware"
 	"strconv"
 	"strings"
 	"text/template"
@@ -19,7 +20,7 @@ import (
 func main() {
 	connection.DatabaseConnect()
 	route := mux.NewRouter()
-
+	route.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads/"))))
 	route.PathPrefix("/public").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("./public"))))
 
 	route.HandleFunc("/", home).Methods("GET")
@@ -27,7 +28,7 @@ func main() {
 	route.HandleFunc("/project", myProject).Methods("GET")
 	route.HandleFunc("/project/{id}", myProjectDetail).Methods("GET")
 	route.HandleFunc("/form-project", myProjectForm).Methods("GET")
-	route.HandleFunc("/add-project", myProjectData).Methods("POST")
+	route.HandleFunc("/add-project", middleware.UploadFile(myProjectData)).Methods("POST")
 	route.HandleFunc("/edit-project/{id}", myProjectEdited).Methods("POST")
 	route.HandleFunc("/delete-project/{id}", myProjectDelete).Methods("GET")
 	route.HandleFunc("/form-edit-project/{id}", myProjectFormEditProject).Methods("GET")
@@ -60,10 +61,13 @@ type StructInputDataForm struct {
 	EndDate         time.Time
 	StartDateFormat string
 	EndDateFormat   string
+	Image 			string
 	Description     string
 	Techno          []string
 	Duration        string
-	IsLogin   bool
+	Author  		 string
+	IsLogin  		 bool
+	
 }
 
 type User struct {
@@ -126,10 +130,11 @@ func myProject(w http.ResponseWriter, r *http.Request) {
 
 //
 	var result []StructInputDataForm
-	data, _ := connection.Conn.Query(context.Background(), "SELECT id, projectname, startdate, enddate, description, technology FROM db_myprojects")
+	data, _ := connection.Conn.Query(context.Background(), "SELECT db_myprojects.id, projectname, startdate, enddate, description, technology,image, tb_user.name as author FROM db_myprojects LEFT JOIN tb_user ON db_myprojects.author_id = tb_user.id ORDER BY id Desc")
+
 	for data.Next() {
 		var each = StructInputDataForm{}
-		err := data.Scan(&each.Id, &each.ProjectName, &each.StartDate, &each.EndDate, &each.Description, &each.Techno)
+		err := data.Scan(&each.Id, &each.ProjectName, &each.StartDate, &each.EndDate, &each.Description, &each.Techno, &each.Author, &each.Image)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
@@ -178,8 +183,8 @@ func myProjectDetail(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	ProjectDetail := StructInputDataForm{}
-	err = connection.Conn.QueryRow(context.Background(), "SELECT id, projectname, startdate, enddate, description, technology FROM db_myprojects WHERE id=$1", id).Scan(
-		&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.StartDate, &ProjectDetail.EndDate, &ProjectDetail.Description, &ProjectDetail.Techno)
+	err = connection.Conn.QueryRow(context.Background(), "SELECT db_myprojects.id, projectname, startdate, enddate, description, technology,  tb_user.name as author FROM db_myprojects LEFT JOIN tb_user ON db_myprojects.author_id = tb_user.id  WHERE db_myprojects.id=$1", id).Scan(
+		&ProjectDetail.Id, &ProjectDetail.ProjectName, &ProjectDetail.StartDate, &ProjectDetail.EndDate, &ProjectDetail.Description, &ProjectDetail.Techno, &ProjectDetail.Author)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("message : " + err.Error()))
@@ -229,16 +234,24 @@ func myProjectForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 func myProjectData(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// projectName := r.PostForm.Get("projectName")
-	// startDate := r.PostForm.Get("startDate")
-	// endDate := r.PostForm.Get("endDate")
-	// description := r.PostForm.Get("description")
+	var store = sessions.NewCookieStore([]byte("SESSION_KEY"))
+	session, _ := store.Get(r, "SESSION_KEY")
+	
+	author := session.Values["ID"].(int)
+	fmt.Println(author)
+
+	dataContext := r.Context().Value("dataFile")
+	image := dataContext.(string)
+
+ 
+
 	var projectName string
 	var startDate string
 	var endDate string
@@ -268,7 +281,7 @@ func myProjectData(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	_, err = connection.Conn.Exec(context.Background(), "INSERT INTO db_myprojects(projectname, startdate, enddate, description, technology) VALUES ($1, $2, $3, $4, $5)", projectName, startDate, endDate, description, techno)
+	_, err = connection.Conn.Exec(context.Background(), "INSERT INTO db_myprojects(projectname, startdate, enddate, description, technology,image, author_id ) VALUES ($1, $2, $3, $4, $5, $6, &7)", projectName, startDate, endDate, description, techno, image, author )
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("message : " + err.Error()))
