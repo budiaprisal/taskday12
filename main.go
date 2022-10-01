@@ -14,6 +14,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
+	"github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,7 +26,7 @@ func main() {
 
 	route.HandleFunc("/", home).Methods("GET")
 
-	route.HandleFunc("/project", myProject).Methods("GET")
+	
 	route.HandleFunc("/project/{id}", myProjectDetail).Methods("GET")
 	route.HandleFunc("/form-project", myProjectForm).Methods("GET")
 	route.HandleFunc("/add-project", middleware.UploadFile(myProjectData)).Methods("POST")
@@ -33,7 +34,7 @@ func main() {
 	route.HandleFunc("/delete-project/{id}", myProjectDelete).Methods("GET")
 	route.HandleFunc("/form-edit-project/{id}", myProjectFormEditProject).Methods("GET")
 	route.HandleFunc("/contact", contact).Methods(("GET"))
-
+route.HandleFunc("/contact", contact).Methods(("GET"))
 	route.HandleFunc("/form-register", formRegister).Methods(("GET"))
 	route.HandleFunc("/register", register).Methods("POST")
 
@@ -42,7 +43,7 @@ func main() {
 	route.HandleFunc("/login", login).Methods("POST")
 
 	route.HandleFunc("/logout", logout).Methods("GET")
-
+	route.HandleFunc("/tes", tes).Methods(("GET"))
 	fmt.Println("Server running at localhost port 8000")
 	http.ListenAndServe("localhost:8000", route)
 }
@@ -67,6 +68,10 @@ type StructInputDataForm struct {
 	Duration        string
 	Author  		 string
 	IsLogin  		 bool
+	Node 			string
+	Vue         	 string
+	Typescript 		string
+	React 			string
 	
 }
 
@@ -84,102 +89,24 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 	template.Execute(w, nil)
 }
-
-func myProject(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	tmpl, err := template.ParseFiles("views/myProject.html")
-	
-	
-//
-
+func tes(w http.ResponseWriter, r *http.Request) {
+	template, err := template.ParseFiles("views/tes.html")
 	if err != nil {
-		w.Write([]byte("message : " + err.Error()))
-		return
-	}
-
-	var store = sessions.NewCookieStore([]byte("SESSION_KEY"))
-	session, _ := store.Get(r, "SESSION_KEY")
-
-	if session.Values["IsLogin"] != true {
-		Data.IsLogin = false
-	} else {
-		Data.IsLogin = session.Values["IsLogin"].(bool)
-		Data.UserName = session.Values["Name"].(string)
+		panic(err)
+		err = connection.Conn.QueryRow(context.Background(), "SELECT  tb_blog id, title, content"  , title,
 	}
 
 
-
-	fm := session.Flashes("message")
-//perlu loping karena nanti ketika refresh si alertny masih ada
-	var flashes []string
-	if len(fm) > 0 {
-		session.Save(r, w)
-		for _, f1 := range fm {
-			// meamasukan flash message
-			flashes = append(flashes, f1.(string))
-		}
-	}
-
-
-	Data.FlashData = strings.Join(flashes, "")
-
-
-
-
-
-
-//
-	var result []StructInputDataForm
-	data, _ := connection.Conn.Query(context.Background(), "SELECT db_myprojects.id, projectname, startdate, enddate, description, technology,image, tb_user.name as author FROM db_myprojects LEFT JOIN tb_user ON db_myprojects.author_id = tb_user.id ORDER BY id Desc")
-
-	for data.Next() {
-		var each = StructInputDataForm{}
-		err := data.Scan(&each.Id, &each.ProjectName, &each.StartDate, &each.EndDate, &each.Description, &each.Techno, &each.Author, &each.Image)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		each.Duration = ""
-
-		hour := 1
-		day := hour * 24
-		week := hour * 24 * 7
-		month := hour * 24 * 30
-		year := hour * 24 * 365
-		differHour := each.EndDate.Sub(each.StartDate).Hours()
-		var differHours int = int(differHour)
-		days := differHours / day
-		weeks := differHours / week
-		months := differHours / month
-		years := differHours / year
-		if differHours < week {
-			each.Duration = strconv.Itoa(int(days)) + " Days"
-		} else if differHours < month {
-			each.Duration = strconv.Itoa(int(weeks)) + " Weeks"
-		} else if differHours < year {
-			each.Duration = strconv.Itoa(int(months)) + " Months"
-		} else if differHours > year {
-			each.Duration = strconv.Itoa(int(years)) + " Years"
-		}
-
-		result = append(result, each)
-	}
-
-	response := map[string]interface{}{
-		"DataSession": Data,
-		"Projects": result,
-	}
-
-	if err == nil {
-		tmpl.Execute(w, response)
-	} else {
-		w.Write([]byte("Message: "))
-		w.Write([]byte(err.Error()))
-	}
+	template.Execute(w, nil)
 }
 
 func myProjectDetail(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("views/myProjectDetail.html")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("message : " + err.Error()))
+		return
+	}
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	ProjectDetail := StructInputDataForm{}
@@ -250,38 +177,16 @@ func myProjectData(w http.ResponseWriter, r *http.Request) {
 	dataContext := r.Context().Value("dataFile")
 	image := dataContext.(string)
 
- 
-
-	var projectName string
-	var startDate string
-	var endDate string
-	var description string
-	var techno []string
-	fmt.Println(r.Form)
-	for i, values := range r.Form {
-		fmt.Printf("type of values is %T\n", values)
-		fmt.Println(values)
-		fmt.Println(i)
-		for _, value := range values {
-			if i == "projectName" {
-				projectName = value
-			}
-			if i == "startDate" {
-				startDate = value
-			}
-			if i == "endDate" {
-				endDate = value
-			}
-			if i == "description" {
-				description = value
-			}
-			if i == "techno" {
-				techno = append(techno, value)
-				fmt.Printf("type of value is %T\n", value)
-			}
-		}
-	}
-	_, err = connection.Conn.Exec(context.Background(), "INSERT INTO db_myprojects(projectname, startdate, enddate, description, technology,image, author_id ) VALUES ($1, $2, $3, $4, $5, $6, &7)", projectName, startDate, endDate, description, techno, image, author )
+ var title = r.PostForm.Get("inputName")
+ var startdate = r.PostForm.Get("startdate")
+ var enddate = r.PostForm.Get("enddate")
+ var node = r.PostForm.Get("node")
+ var react = r.PostForm.Get("react")
+ var typescript = r.PostForm.Get("typescript")
+ var vue = r.PostForm.Get("vue")
+ var description = r.PostForm.Get("description")
+	
+	_, err = connection.Conn.Exec(context.Background(), "INSERT INTO db_myprojects (projectname, startdate, enddate, description, technology,image, author_id ) VALUES ($1, $2, $3, $4, $5, $6, $7)", title, startdate, enddate, description, pq.Array([]string{node, react, vue, typescript}), image, author )
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("message : " + err.Error()))
@@ -292,6 +197,11 @@ func myProjectData(w http.ResponseWriter, r *http.Request) {
 
 func myProjectFormEditProject(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles("views/myProjectFormEditProject.html")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("message : " + err.Error()))
+		return
+	}
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
 	ProjectEdit := StructInputDataForm{}
